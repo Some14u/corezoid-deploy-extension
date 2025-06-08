@@ -150,7 +150,7 @@ class CorezoidDeployShortcut {
       padding: 6px 10px;
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      z-index: 999999;
+      z-index: 99999999;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
       display: flex;
