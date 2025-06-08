@@ -10,6 +10,7 @@ class CorezoidDeployShortcut {
     if (is_valid_page) {
       this.inject_modal_styles();
       this.add_keyboard_listener();
+      this.setup_deploy_success_notification();
       console.log('Corezoid Deploy Shortcut: Extension activated on this page');
     }
   }
@@ -92,6 +93,52 @@ class CorezoidDeployShortcut {
     }
 
     return null;
+  }
+
+  setup_deploy_success_notification() {
+    const proc_status_element = document.querySelector('div[rel="ProcStatus"]');
+    const span_deployed_element = document.querySelector('span[el="SpanDeployed"]');
+    
+    if (!proc_status_element || !span_deployed_element) {
+      console.log('Corezoid Deploy Shortcut: Deploy status elements not found, notification setup skipped');
+      return;
+    }
+
+    const mutation_observer = new MutationObserver(() => {
+      if (proc_status_element.style.display === 'inline-block' && 
+          getComputedStyle(span_deployed_element).display === 'inline') {
+        this.show_deploy_success_notification();
+      }
+    });
+
+    mutation_observer.observe(proc_status_element, { 
+      attributes: true, 
+      attributeFilter: ['style'] 
+    });
+
+    console.log('Corezoid Deploy Shortcut: Deploy success notification observer setup complete');
+  }
+
+  show_deploy_success_notification() {
+    console.log('Corezoid Deploy Shortcut: Deploy completed successfully');
+    
+    if (Notification.permission === 'granted') {
+      new Notification('Corezoid Deploy Shortcut', {
+        body: 'Process deployed successfully!',
+        icon: chrome.runtime.getURL('icon48.png'),
+        tag: 'corezoid-deploy-success'
+      });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          new Notification('Corezoid Deploy Shortcut', {
+            body: 'Process deployed successfully!',
+            icon: chrome.runtime.getURL('icon48.png'),
+            tag: 'corezoid-deploy-success'
+          });
+        }
+      });
+    }
   }
 }
 
