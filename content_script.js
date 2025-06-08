@@ -55,7 +55,7 @@ class CorezoidDeployShortcut {
 
   add_keyboard_listener() {
     document.addEventListener('keydown', (event) => {
-      const is_ctrl_s = (event.ctrlKey || event.metaKey) && event.key === 's';
+      const is_ctrl_s = (event.ctrlKey || event.metaKey) && event.code === 'KeyS';
       if (is_ctrl_s) {
         event.preventDefault();
         this.trigger_deploy();
@@ -96,29 +96,29 @@ class CorezoidDeployShortcut {
   }
 
   setup_deploy_success_notification() {
-    window.addEventListener('load', () => {
+    const observer = new MutationObserver((_, obs) => {
       const proc_status_element = document.querySelector('div[rel="ProcStatus"]');
       const span_deployed_element = document.querySelector('span[el="SpanDeployed"]');
-      
-      if (!proc_status_element || !span_deployed_element) {
-        console.log('Corezoid Deploy Shortcut: Deploy status elements not found after page load, notification setup skipped');
-        return;
-      }
 
-      const mutation_observer = new MutationObserver(() => {
-        if (proc_status_element.style.display === 'inline-block' && 
-            getComputedStyle(span_deployed_element).display === 'inline') {
+      if (!proc_status_element || !span_deployed_element) return;
+
+      const proc_status_element_observer = new MutationObserver(() => {
+        if (proc_status_element.style.display === 'inline-block' &&
+          getComputedStyle(span_deployed_element).display === 'inline') {
           this.show_deploy_success_notification();
         }
       });
 
-      mutation_observer.observe(proc_status_element, { 
-        attributes: true, 
-        attributeFilter: ['style'] 
+      proc_status_element_observer.observe(proc_status_element, {
+        attributes: true,
+        attributeFilter: ['style']
       });
 
       console.log('Corezoid Deploy Shortcut: Deploy success notification observer setup complete');
+      obs.disconnect();
     });
+
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   show_deploy_success_notification() {
@@ -150,17 +150,17 @@ class CorezoidDeployShortcut {
       right: 20px;
       background: #28a745;
       color: white;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       z-index: 999999;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
-      min-width: 300px;
-      max-width: 400px;
+      min-width: 250px;
+      max-width: 350px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
       transform: translateX(100%);
       transition: transform 0.3s ease-in-out;
       pointer-events: auto;
@@ -170,13 +170,14 @@ class CorezoidDeployShortcut {
     icon.style.cssText = `
       background: rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       flex-shrink: 0;
+      font-size: 12px;
     `;
 
     const content = toast.querySelector('.toast-content');
@@ -187,7 +188,7 @@ class CorezoidDeployShortcut {
     const title = toast.querySelector('.toast-title');
     title.style.cssText = `
       font-weight: 600;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     `;
 
     const messageEl = toast.querySelector('.toast-message');
@@ -208,7 +209,7 @@ class CorezoidDeployShortcut {
           toast.remove();
         }
       }, 300);
-    }, 4000);
+    }, 2000);
 
     toast.addEventListener('click', () => {
       toast.style.transform = 'translateX(100%)';
