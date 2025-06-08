@@ -138,10 +138,7 @@ class CorezoidDeployShortcut {
     toast.id = toast_id;
     toast.innerHTML = `
       <div class="toast-icon">✓</div>
-      <div class="toast-content">
-        <div class="toast-title">Corezoid Deploy Shortcut</div>
-        <div class="toast-message">${message}</div>
-      </div>
+      <div class="toast-text">Deployed</div>
     `;
 
     toast.style.cssText = `
@@ -150,50 +147,39 @@ class CorezoidDeployShortcut {
       right: 20px;
       background: #28a745;
       color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
+      padding: 6px 10px;
+      border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       z-index: 999999;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 14px;
-      min-width: 250px;
-      max-width: 350px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       transform: translateX(100%);
       transition: transform 0.3s ease-in-out;
       pointer-events: auto;
+      white-space: nowrap;
     `;
 
     const icon = toast.querySelector('.toast-icon');
     icon.style.cssText = `
       background: rgba(255, 255, 255, 0.2);
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       flex-shrink: 0;
-      font-size: 12px;
+      font-size: 11px;
     `;
 
-    const content = toast.querySelector('.toast-content');
-    content.style.cssText = `
-      flex: 1;
-    `;
-
-    const title = toast.querySelector('.toast-title');
-    title.style.cssText = `
+    const text = toast.querySelector('.toast-text');
+    text.style.cssText = `
       font-weight: 600;
-      margin-bottom: 2px;
-    `;
-
-    const messageEl = toast.querySelector('.toast-message');
-    messageEl.style.cssText = `
-      opacity: 0.9;
+      font-size: 14px;
     `;
 
     document.body.appendChild(toast);
