@@ -10,7 +10,7 @@ class CorezoidDeployShortcut {
     if (is_valid_page) {
       this.inject_modal_styles();
       this.add_keyboard_listener();
-      this.wait_for_page_elements();
+      this.setup_deploy_success_notification();
       console.log('Corezoid Deploy Shortcut: Extension activated on this page');
     }
   }
@@ -95,38 +95,30 @@ class CorezoidDeployShortcut {
     return null;
   }
 
-  wait_for_page_elements() {
-    const check_elements_interval = setInterval(() => {
+  setup_deploy_success_notification() {
+    window.addEventListener('load', () => {
       const proc_status_element = document.querySelector('div[rel="ProcStatus"]');
       const span_deployed_element = document.querySelector('span[el="SpanDeployed"]');
       
-      if (proc_status_element && span_deployed_element) {
-        clearInterval(check_elements_interval);
-        this.setup_deploy_success_notification(proc_status_element, span_deployed_element);
-        console.log('Corezoid Deploy Shortcut: Page elements found, notification observer setup complete');
+      if (!proc_status_element || !span_deployed_element) {
+        console.log('Corezoid Deploy Shortcut: Deploy status elements not found after page load, notification setup skipped');
+        return;
       }
-    }, 500);
 
-    setTimeout(() => {
-      clearInterval(check_elements_interval);
-      console.log('Corezoid Deploy Shortcut: Timeout waiting for page elements, notification setup skipped');
-    }, 10000);
-  }
+      const mutation_observer = new MutationObserver(() => {
+        if (proc_status_element.style.display === 'inline-block' && 
+            getComputedStyle(span_deployed_element).display === 'inline') {
+          this.show_deploy_success_notification();
+        }
+      });
 
-  setup_deploy_success_notification(proc_status_element, span_deployed_element) {
-    const mutation_observer = new MutationObserver(() => {
-      if (proc_status_element.style.display === 'inline-block' && 
-          getComputedStyle(span_deployed_element).display === 'inline') {
-        this.show_deploy_success_notification();
-      }
+      mutation_observer.observe(proc_status_element, { 
+        attributes: true, 
+        attributeFilter: ['style'] 
+      });
+
+      console.log('Corezoid Deploy Shortcut: Deploy success notification observer setup complete');
     });
-
-    mutation_observer.observe(proc_status_element, { 
-      attributes: true, 
-      attributeFilter: ['style'] 
-    });
-
-    console.log('Corezoid Deploy Shortcut: Deploy success notification observer setup complete');
   }
 
   show_deploy_success_notification() {
