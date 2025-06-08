@@ -121,24 +121,101 @@ class CorezoidDeployShortcut {
 
   show_deploy_success_notification() {
     console.log('Corezoid Deploy Shortcut: Deploy completed successfully');
+    this.create_toast_notification('Process deployed successfully!', 'success');
+  }
+
+  create_toast_notification(message, type = 'success') {
+    const toast_id = 'corezoid-deploy-toast';
     
-    if (Notification.permission === 'granted') {
-      new Notification('Corezoid Deploy Shortcut', {
-        body: 'Process deployed successfully!',
-        icon: chrome.runtime.getURL('icon48.png'),
-        tag: 'corezoid-deploy-success'
-      });
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          new Notification('Corezoid Deploy Shortcut', {
-            body: 'Process deployed successfully!',
-            icon: chrome.runtime.getURL('icon48.png'),
-            tag: 'corezoid-deploy-success'
-          });
-        }
-      });
+    const existing_toast = document.getElementById(toast_id);
+    if (existing_toast) {
+      existing_toast.remove();
     }
+
+    const toast = document.createElement('div');
+    toast.id = toast_id;
+    toast.innerHTML = `
+      <div class="toast-icon">✓</div>
+      <div class="toast-content">
+        <div class="toast-title">Corezoid Deploy Shortcut</div>
+        <div class="toast-message">${message}</div>
+      </div>
+    `;
+
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 999999;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      min-width: 300px;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
+      pointer-events: auto;
+    `;
+
+    const icon = toast.querySelector('.toast-icon');
+    icon.style.cssText = `
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    `;
+
+    const content = toast.querySelector('.toast-content');
+    content.style.cssText = `
+      flex: 1;
+    `;
+
+    const title = toast.querySelector('.toast-title');
+    title.style.cssText = `
+      font-weight: 600;
+      margin-bottom: 4px;
+    `;
+
+    const messageEl = toast.querySelector('.toast-message');
+    messageEl.style.cssText = `
+      opacity: 0.9;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.transform = 'translateX(0)';
+    }, 10);
+
+    setTimeout(() => {
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 300);
+    }, 4000);
+
+    toast.addEventListener('click', () => {
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 300);
+    });
   }
 }
 
