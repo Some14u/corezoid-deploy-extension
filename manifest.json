@@ -5,8 +5,7 @@
   "description": "Adds Ctrl+S keyboard shortcut for Deploy action in Corezoid process editor",
   "permissions": [
     "storage",
-    "activeTab",
-    "notifications"
+    "activeTab"
   ],
   "content_scripts": [
     {
