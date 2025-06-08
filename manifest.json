@@ -9,7 +9,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["*://*/*/process/*"],
+      "matches": ["*://*/*/*/process/*"],
       "js": ["content_script.js"],
       "run_at": "document_end"
     }
