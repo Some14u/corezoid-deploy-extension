@@ -143,7 +143,7 @@ class CorezoidDeployShortcut {
 
     toast.style.cssText = `
       position: fixed;
-      top: 20px;
+      top: 10px;
       right: 20px;
       background: #28a745;
       color: white;
