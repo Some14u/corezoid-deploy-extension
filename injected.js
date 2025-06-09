@@ -3,28 +3,54 @@
 const active_popup_view_context = { callback: null, model: null };
 
 function initBackbonePatch() {
-  if (typeof window.Backbone === 'undefined' || !window.Backbone.View) {
-    return false;
-  }
-
-  const { View: OrigView } = window.Backbone;
-  
-  function PatchedView(options, ...args) {
-    OrigView.call(this, options, ...args);
-    const { isPopup, popupCloseCallback: cb } = this.options;
-    if (isPopup && typeof cb === 'function') {
-      active_popup_view_context.callback = cb;
-      active_popup_view_context.model = this.model;
+  const tryInitialize = () => {
+    if (typeof window.Backbone === 'undefined' || !window.Backbone.View) {
+      return false;
     }
+
+    const { View: OrigView } = window.Backbone;
+    
+    function PatchedView(options, ...args) {
+      OrigView.call(this, options, ...args);
+      const { isPopup, popupCloseCallback: cb } = this.options;
+      if (isPopup && typeof cb === 'function') {
+        active_popup_view_context.callback = cb;
+        active_popup_view_context.model = this.model;
+      }
+    }
+
+    PatchedView.prototype = Object.create(OrigView.prototype);
+    PatchedView.prototype.constructor = PatchedView;
+    Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
+
+    window.Backbone.View = PatchedView;
+    console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
+    return true;
+  };
+
+  if (tryInitialize()) {
+    return;
   }
 
-  PatchedView.prototype = Object.create(OrigView.prototype);
-  PatchedView.prototype.constructor = PatchedView;
-  Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
+  console.log('Corezoid Deploy Shortcut: Backbone not ready, setting up retry mechanism');
+  
+  let attempts = 0;
+  const maxAttempts = 50;
+  
+  const observer = new MutationObserver(() => {
+    attempts++;
+    if (tryInitialize()) {
+      observer.disconnect();
+      console.log(`Corezoid Deploy Shortcut: Backbone patched successfully after ${attempts} attempts`);
+    }
+  });
 
-  window.Backbone.View = PatchedView;
-  console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
-  return true;
+  observer.observe(document, { childList: true, subtree: true });
+
+  setTimeout(() => {
+    observer.disconnect();
+    console.log('Corezoid Deploy Shortcut: Backbone patch initialization timed out after 10 seconds');
+  }, 10000);
 }
 
 function synchronizeEditorsSrc() {
