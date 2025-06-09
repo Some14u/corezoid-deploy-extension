@@ -1,0 +1,30 @@
+# .github/workflows/sign.yml
+name: Build & Sign Firefox Add-on
+
+on:
+  push:
+    branches:
+      - release
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Sign extension
+        uses: mozilla/web-ext-action@v2
+        with:
+          api_key: ${{ secrets.FIREFOX_API_KEY }}
+          api_secret: ${{ secrets.FIREFOX_API_SECRET }}
+          source_dir: "./"
+          artifacts_dir: "signed"
+          channel: "unlisted"
+
+      - name: Upload signed XPI
+        uses: actions/upload-artifact@v3
+        with:
+          name: firefox-xpi
+          path: signed/*.xpi
