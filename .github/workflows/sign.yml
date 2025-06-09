@@ -8,21 +8,30 @@ on:
   workflow_dispatch:
 
 jobs:
-  sign:
+  build_and_sign:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Build extension
+        id: web-ext-build
+        uses: kewisch/action-web-ext@v1
+        with:
+          cmd: build
+          source: "./"
+          artifacts: "build"
+
       - name: Sign extension
+        id: web-ext-sign
         uses: kewisch/action-web-ext@v1
         with:
           cmd: sign
-          source: "./"
+          source: ${{ steps.web-ext-build.outputs.target }}
           artifacts: "signed"
-          channel: "unlisted"
           apiKey: ${{ secrets.FIREFOX_API_KEY }}
           apiSecret: ${{ secrets.FIREFOX_API_SECRET }}
+          channel: "unlisted"
 
       - name: Upload signed XPI
         uses: actions/upload-artifact@v4
