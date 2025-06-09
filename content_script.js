@@ -10,28 +10,29 @@ class CorezoidDeployShortcut {
     this.active_popup_view_context = { callback: null, model: null };
     
     const attemptPatch = () => {
-      if (typeof window.Backbone !== 'undefined' && window.Backbone.View) {
-        const { View: OrigView } = window.Backbone;
-        const self = this;
-        
-        function PatchedView(options, ...args) {
-          OrigView.call(this, options, ...args);
-          const { isPopup, popupCloseCallback: cb } = this.options;
-          if (isPopup && typeof cb === 'function') {
-            self.active_popup_view_context.callback = cb;
-            self.active_popup_view_context.model = this.model;
-          }
-        }
-
-        PatchedView.prototype = Object.create(OrigView.prototype);
-        PatchedView.prototype.constructor = PatchedView;
-        Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
-
-        window.Backbone.View = PatchedView;
-        console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
-        return true;
+      if (typeof window.Backbone === 'undefined' || !window.Backbone.View) {
+        return false;
       }
-      return false;
+
+      const { View: OrigView } = window.Backbone;
+      const self = this;
+      
+      function PatchedView(options, ...args) {
+        OrigView.call(this, options, ...args);
+        const { isPopup, popupCloseCallback: cb } = this.options;
+        if (isPopup && typeof cb === 'function') {
+          self.active_popup_view_context.callback = cb;
+          self.active_popup_view_context.model = this.model;
+        }
+      }
+
+      PatchedView.prototype = Object.create(OrigView.prototype);
+      PatchedView.prototype.constructor = PatchedView;
+      Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
+
+      window.Backbone.View = PatchedView;
+      console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
+      return true;
     };
 
     if (attemptPatch()) {
