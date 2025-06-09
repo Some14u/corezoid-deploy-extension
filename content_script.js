@@ -2,7 +2,43 @@ class CorezoidDeployShortcut {
   constructor() {
     this.deploy_button_selector = '[el="ProcSave"]';
     this.deploy_button_classes = ['ed__header__status__name', 'ed__header__status__save', 'e__viewMode'];
+    this.init_backbone_patch();
     this.init();
+  }
+
+  init_backbone_patch() {
+    if (typeof window.Backbone === 'undefined') {
+      console.log('Corezoid Deploy Shortcut: Backbone not found, skipping patch');
+      return;
+    }
+
+    const { View: OrigView } = window.Backbone;
+    const active_popup_view_context = { callback: null, model: null };
+
+    function PatchedView(options, ...args) {
+      OrigView.call(this, options, ...args);
+      const { isPopup, popupCloseCallback: cb } = this.options;
+      if (isPopup && typeof cb === 'function') {
+        active_popup_view_context.callback = cb;
+        active_popup_view_context.model = this.model;
+      }
+    }
+
+    PatchedView.prototype = Object.create(OrigView.prototype);
+    PatchedView.prototype.constructor = PatchedView;
+    Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
+
+    window.Backbone.View = PatchedView;
+
+    window.getActivePopupViewContext = () => active_popup_view_context;
+
+    window.synchronize_editors_src = () => {
+      const { callback, model } = active_popup_view_context;
+      if (typeof callback === 'function' && model?.attributes)
+        callback(model.attributes.src);
+    };
+
+    console.log('Corezoid Deploy Shortcut: Backbone.View patched and synchronize_editors_src function added');
   }
 
   async init() {
