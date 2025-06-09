@@ -9,7 +9,7 @@
     }
 
     const { View: OrigView } = window.Backbone;
-    
+
     function PatchedView(options, ...args) {
       OrigView.call(this, options, ...args);
       const { isPopup, popupCloseCallback: cb } = this.options;
@@ -39,28 +39,20 @@
       return false;
     }
   }
+                                                                                   
+  initBackbonePatch();
 
   window.addEventListener('message', function(event) {
     if (event.source !== window || !event.data.type) {
       return;
     }
 
-    switch (event.data.type) {
-      case 'COREZOID_INIT_BACKBONE_PATCH':
-        const patchResult = initBackbonePatch();
-        window.postMessage({
-          type: 'COREZOID_BACKBONE_PATCH_RESULT',
-          success: patchResult
-        }, '*');
-        break;
-
-      case 'COREZOID_SYNCHRONIZE_EDITORS':
-        const syncResult = synchronizeEditorsSrc();
-        window.postMessage({
-          type: 'COREZOID_SYNCHRONIZE_RESULT',
-          success: syncResult
-        }, '*');
-        break;
+    if (event.data.type === 'COREZOID_SYNCHRONIZE_EDITORS') {
+      const syncResult = synchronizeEditorsSrc();
+      window.postMessage({
+        type: 'COREZOID_SYNCHRONIZE_RESULT',
+        success: syncResult
+      }, '*');
     }
   });
 

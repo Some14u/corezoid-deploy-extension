@@ -10,22 +10,7 @@ class CorezoidDeployShortcut {
     const script = document.createElement('script');
     script.src = chrome.runtime.getURL('injected.js');
     document.head.appendChild(script);
-
-    window.addEventListener('message', (event) => {
-      if (event.source !== window || !event.data.type) {
-        return;
-      }
-
-      if (event.data.type === 'COREZOID_BACKBONE_PATCH_RESULT') {
-        if (event.data.success) {
-          console.log('Corezoid Deploy Shortcut: Backbone patch applied successfully');
-        } else {
-          console.log('Corezoid Deploy Shortcut: Backbone patch failed - Backbone not available');
-        }
-      }
-    });
-
-    window.postMessage({ type: 'COREZOID_INIT_BACKBONE_PATCH' }, '*');
+    console.log('Corezoid Deploy Shortcut: Injected script loaded for Backbone patching');
   }
 
   synchronize_editors_src() {
