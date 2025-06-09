@@ -2,17 +2,50 @@ class CorezoidDeployShortcut {
   constructor() {
     this.deploy_button_selector = '[el="ProcSave"]';
     this.deploy_button_classes = ['ed__header__status__name', 'ed__header__status__save', 'e__viewMode'];
+    this.init_backbone_patch();
     this.init();
+  }
+
+  init_backbone_patch() {
+    const script = document.createElement('script');
+    script.src = chrome.runtime.getURL('injected.js');
+    document.head.appendChild(script);
+    console.log('Corezoid Deploy Shortcut: Injected script loaded for Backbone patching');
+  }
+
+  synchronize_editors_src() {
+    return new Promise((resolve) => {
+      const messageHandler = (event) => {
+        if (event.source !== window || !event.data.type) {
+          return;
+        }
+
+        if (event.data.type === 'COREZOID_SYNCHRONIZE_RESULT') {
+          window.removeEventListener('message', messageHandler);
+          resolve(event.data.success);
+        }
+      };
+
+      window.addEventListener('message', messageHandler);
+      window.postMessage({ type: 'COREZOID_SYNCHRONIZE_EDITORS' }, '*');
+
+      setTimeout(() => {
+        window.removeEventListener('message', messageHandler);
+        resolve(false);
+      }, 1000);
+    });
   }
 
   async init() {
     const is_valid_page = await this.check_valid_page();
-    if (is_valid_page) {
-      this.inject_modal_styles();
-      this.add_keyboard_listener();
-      this.setup_deploy_success_notification();
-      console.log('Corezoid Deploy Shortcut: Extension activated on this page');
+    if (!is_valid_page) {
+      return;
     }
+
+    this.inject_modal_styles();
+    this.add_keyboard_listener();
+    this.setup_deploy_success_notification();
+    console.log('Corezoid Deploy Shortcut: Extension activated on this page');
   }
 
   inject_modal_styles() {
@@ -63,15 +96,17 @@ class CorezoidDeployShortcut {
     });
   }
 
-  trigger_deploy() {
+  async trigger_deploy() {
     const deploy_button = this.find_deploy_button();
     
-    if (deploy_button) {
-      deploy_button.click();
-      console.log('Corezoid Deploy Shortcut: Deploy action triggered via keyboard shortcut');
-    } else {
+    if (!deploy_button) {
       console.log('Corezoid Deploy Shortcut: Deploy button not available - process cannot be deployed at this time');
+      return;
     }
+
+    await this.synchronize_editors_src();
+    deploy_button.click();
+    console.log('Corezoid Deploy Shortcut: Deploy action triggered via keyboard shortcut');
   }
 
   find_deploy_button() {
@@ -88,11 +123,11 @@ class CorezoidDeployShortcut {
     const is_visible = deploy_button.offsetParent !== null && 
                       getComputedStyle(deploy_button).display !== 'none';
 
-    if (has_required_classes && is_visible) {
-      return deploy_button;
+    if (!has_required_classes || !is_visible) {
+      return null;
     }
 
-    return null;
+    return deploy_button;
   }
 
   setup_deploy_success_notification() {
