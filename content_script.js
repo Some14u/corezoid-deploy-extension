@@ -67,6 +67,11 @@ class CorezoidDeployShortcut {
     const deploy_button = this.find_deploy_button();
     
     if (deploy_button) {
+      if (typeof window.synchronize_editors_src === 'function') {
+        window.synchronize_editors_src();
+        console.log('Corezoid Deploy Shortcut: Editors synchronized before deployment');
+      }
+      
       deploy_button.click();
       console.log('Corezoid Deploy Shortcut: Deploy action triggered via keyboard shortcut');
     } else {
