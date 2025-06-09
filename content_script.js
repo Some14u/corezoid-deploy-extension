@@ -171,10 +171,17 @@ class CorezoidDeployShortcut {
 
     const toast = document.createElement('div');
     toast.id = toast_id;
-    toast.innerHTML = `
-      <div class="toast-icon">✓</div>
-      <div class="toast-text">Deployed</div>
-    `;
+    
+    const toast_icon = document.createElement('div');
+    toast_icon.className = 'toast-icon';
+    toast_icon.textContent = '✓';
+    
+    const toast_text = document.createElement('div');
+    toast_text.className = 'toast-text';
+    toast_text.textContent = 'Deployed';
+    
+    toast.appendChild(toast_icon);
+    toast.appendChild(toast_text);
 
     toast.style.cssText = `
       position: fixed;
