@@ -22,20 +22,29 @@ class OptionsManager {
 
   render_domains() {
     const domains_list = document.getElementById('domains-list');
-    domains_list.innerHTML = '';
+    domains_list.replaceChildren();
 
     if (this.current_domains.length === 0) {
-      domains_list.innerHTML = '<p>No domains configured. Add at least one domain to use the extension.</p>';
+      const message_paragraph = document.createElement('p');
+      message_paragraph.textContent = 'No domains configured. Add at least one domain to use the extension.';
+      domains_list.appendChild(message_paragraph);
       return;
     }
 
     this.current_domains.forEach((domain, index) => {
       const domain_item = document.createElement('div');
       domain_item.className = 'domain-item';
-      domain_item.innerHTML = `
-        <span>${domain}</span>
-        <button class="btn btn-danger" data-index="${index}">Remove</button>
-      `;
+      
+      const domain_span = document.createElement('span');
+      domain_span.textContent = domain;
+      
+      const remove_button = document.createElement('button');
+      remove_button.className = 'btn btn-danger';
+      remove_button.setAttribute('data-index', index.toString());
+      remove_button.textContent = 'Remove';
+      
+      domain_item.appendChild(domain_span);
+      domain_item.appendChild(remove_button);
       domains_list.appendChild(domain_item);
     });
   }
