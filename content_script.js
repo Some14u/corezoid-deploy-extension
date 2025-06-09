@@ -7,72 +7,48 @@ class CorezoidDeployShortcut {
   }
 
   init_backbone_patch() {
-    this.active_popup_view_context = { callback: null, model: null };
-    
-    const attemptPatch = () => {
-      if (typeof window.Backbone === 'undefined' || !window.Backbone.View) {
-        return false;
+    const script = document.createElement('script');
+    script.src = chrome.runtime.getURL('injected.js');
+    document.head.appendChild(script);
+
+    window.addEventListener('message', (event) => {
+      if (event.source !== window || !event.data.type) {
+        return;
       }
 
-      const { View: OrigView } = window.Backbone;
-      const self = this;
-      
-      function PatchedView(options, ...args) {
-        OrigView.call(this, options, ...args);
-        const { isPopup, popupCloseCallback: cb } = this.options;
-        if (isPopup && typeof cb === 'function') {
-          self.active_popup_view_context.callback = cb;
-          self.active_popup_view_context.model = this.model;
+      if (event.data.type === 'COREZOID_BACKBONE_PATCH_RESULT') {
+        if (event.data.success) {
+          console.log('Corezoid Deploy Shortcut: Backbone patch applied successfully');
+        } else {
+          console.log('Corezoid Deploy Shortcut: Backbone patch failed - Backbone not available');
         }
       }
-
-      PatchedView.prototype = Object.create(OrigView.prototype);
-      PatchedView.prototype.constructor = PatchedView;
-      Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
-
-      window.Backbone.View = PatchedView;
-      console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
-      return true;
-    };
-
-    if (attemptPatch()) {
-      return;
-    }
-
-    console.log('Corezoid Deploy Shortcut: Backbone not found, waiting for it to load...');
-    
-    const observer = new MutationObserver(() => {
-      if (attemptPatch()) {
-        observer.disconnect();
-      }
     });
 
-    observer.observe(document.documentElement, { 
-      childList: true, 
-      subtree: true 
-    });
-
-    setTimeout(() => {
-      observer.disconnect();
-      if (typeof window.Backbone === 'undefined') {
-        console.log('Corezoid Deploy Shortcut: Backbone not found after waiting, patch skipped');
-      }
-    }, 10000);
+    window.postMessage({ type: 'COREZOID_INIT_BACKBONE_PATCH' }, '*');
   }
 
   synchronize_editors_src() {
-    if (!this.active_popup_view_context) {
-      console.log('Corezoid Deploy Shortcut: No popup context available for synchronization');
-      return;
-    }
+    return new Promise((resolve) => {
+      const messageHandler = (event) => {
+        if (event.source !== window || !event.data.type) {
+          return;
+        }
 
-    const { callback, model } = this.active_popup_view_context;
-    if (typeof callback === 'function' && model?.attributes) {
-      callback(model.attributes.src);
-      console.log('Corezoid Deploy Shortcut: Editors synchronized successfully');
-    } else {
-      console.log('Corezoid Deploy Shortcut: No valid callback or model for synchronization');
-    }
+        if (event.data.type === 'COREZOID_SYNCHRONIZE_RESULT') {
+          window.removeEventListener('message', messageHandler);
+          resolve(event.data.success);
+        }
+      };
+
+      window.addEventListener('message', messageHandler);
+      window.postMessage({ type: 'COREZOID_SYNCHRONIZE_EDITORS' }, '*');
+
+      setTimeout(() => {
+        window.removeEventListener('message', messageHandler);
+        resolve(false);
+      }, 1000);
+    });
   }
 
   async init() {
@@ -135,7 +111,7 @@ class CorezoidDeployShortcut {
     });
   }
 
-  trigger_deploy() {
+  async trigger_deploy() {
     const deploy_button = this.find_deploy_button();
     
     if (!deploy_button) {
@@ -143,7 +119,7 @@ class CorezoidDeployShortcut {
       return;
     }
 
-    this.synchronize_editors_src();
+    await this.synchronize_editors_src();
     deploy_button.click();
     console.log('Corezoid Deploy Shortcut: Deploy action triggered via keyboard shortcut');
   }
