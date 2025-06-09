@@ -40,32 +40,23 @@ class CorezoidDeployShortcut {
 
     console.log('Corezoid Deploy Shortcut: Backbone not found, waiting for it to load...');
     
-    let attempts = 0;
-    const maxAttempts = 50;
-    const pollInterval = 100;
-    
-    const pollForBackbone = () => {
-      attempts++;
-      if (attemptPatch()) {
-        return;
-      }
-      
-      if (attempts < maxAttempts) {
-        setTimeout(pollForBackbone, pollInterval);
-      } else {
-        console.log('Corezoid Deploy Shortcut: Backbone not found after waiting, patch skipped');
-      }
-    };
-
-    setTimeout(pollForBackbone, pollInterval);
-
     const observer = new MutationObserver(() => {
       if (attemptPatch()) {
         observer.disconnect();
       }
     });
 
-    observer.observe(document.head, { childList: true, subtree: true });
+    observer.observe(document.documentElement, { 
+      childList: true, 
+      subtree: true 
+    });
+
+    setTimeout(() => {
+      observer.disconnect();
+      if (typeof window.Backbone === 'undefined') {
+        console.log('Corezoid Deploy Shortcut: Backbone not found after waiting, patch skipped');
+      }
+    }, 10000);
   }
 
   synchronize_editors_src() {
