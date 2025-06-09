@@ -34,14 +34,10 @@ function initBackbonePatch() {
 
   console.log('Corezoid Deploy Shortcut: Backbone not ready, setting up retry mechanism');
   
-  let attempts = 0;
-  const maxAttempts = 50;
-  
   const observer = new MutationObserver(() => {
-    attempts++;
     if (tryInitialize()) {
       observer.disconnect();
-      console.log(`Corezoid Deploy Shortcut: Backbone patched successfully after ${attempts} attempts`);
+      console.log('Corezoid Deploy Shortcut: Backbone patched successfully via retry mechanism');
     }
   });
 
