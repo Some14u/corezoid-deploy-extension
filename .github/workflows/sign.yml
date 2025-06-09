@@ -15,16 +15,17 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Sign extension
-        uses: mozilla/web-ext-action@v2
+        uses: kewisch/action-web-ext@v1
         with:
-          api_key: ${{ secrets.FIREFOX_API_KEY }}
-          api_secret: ${{ secrets.FIREFOX_API_SECRET }}
-          source_dir: "./"
-          artifacts_dir: "signed"
+          cmd: sign
+          source: "./"
+          artifacts: "signed"
           channel: "unlisted"
+          apiKey: ${{ secrets.FIREFOX_API_KEY }}
+          apiSecret: ${{ secrets.FIREFOX_API_SECRET }}
 
       - name: Upload signed XPI
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: firefox-xpi
           path: signed/*.xpi
