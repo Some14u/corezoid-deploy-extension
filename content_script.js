@@ -7,31 +7,65 @@ class CorezoidDeployShortcut {
   }
 
   init_backbone_patch() {
-    if (typeof window.Backbone === 'undefined') {
-      console.log('Corezoid Deploy Shortcut: Backbone not found, skipping patch');
+    this.active_popup_view_context = { callback: null, model: null };
+    
+    const attemptPatch = () => {
+      if (typeof window.Backbone !== 'undefined' && window.Backbone.View) {
+        const { View: OrigView } = window.Backbone;
+        const self = this;
+        
+        function PatchedView(options, ...args) {
+          OrigView.call(this, options, ...args);
+          const { isPopup, popupCloseCallback: cb } = this.options;
+          if (isPopup && typeof cb === 'function') {
+            self.active_popup_view_context.callback = cb;
+            self.active_popup_view_context.model = this.model;
+          }
+        }
+
+        PatchedView.prototype = Object.create(OrigView.prototype);
+        PatchedView.prototype.constructor = PatchedView;
+        Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
+
+        window.Backbone.View = PatchedView;
+        console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
+        return true;
+      }
+      return false;
+    };
+
+    if (attemptPatch()) {
       return;
     }
 
-    const { View: OrigView } = window.Backbone;
-    this.active_popup_view_context = { callback: null, model: null };
-
-    const self = this;
-    function PatchedView(options, ...args) {
-      OrigView.call(this, options, ...args);
-      const { isPopup, popupCloseCallback: cb } = this.options;
-      if (isPopup && typeof cb === 'function') {
-        self.active_popup_view_context.callback = cb;
-        self.active_popup_view_context.model = this.model;
+    console.log('Corezoid Deploy Shortcut: Backbone not found, waiting for it to load...');
+    
+    let attempts = 0;
+    const maxAttempts = 50;
+    const pollInterval = 100;
+    
+    const pollForBackbone = () => {
+      attempts++;
+      if (attemptPatch()) {
+        return;
       }
-    }
+      
+      if (attempts < maxAttempts) {
+        setTimeout(pollForBackbone, pollInterval);
+      } else {
+        console.log('Corezoid Deploy Shortcut: Backbone not found after waiting, patch skipped');
+      }
+    };
 
-    PatchedView.prototype = Object.create(OrigView.prototype);
-    PatchedView.prototype.constructor = PatchedView;
-    Object.assign(PatchedView, OrigView, { extend: OrigView.extend });
+    setTimeout(pollForBackbone, pollInterval);
 
-    window.Backbone.View = PatchedView;
+    const observer = new MutationObserver(() => {
+      if (attemptPatch()) {
+        observer.disconnect();
+      }
+    });
 
-    console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
+    observer.observe(document.head, { childList: true, subtree: true });
   }
 
   synchronize_editors_src() {
