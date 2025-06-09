@@ -13,14 +13,15 @@ class CorezoidDeployShortcut {
     }
 
     const { View: OrigView } = window.Backbone;
-    const active_popup_view_context = { callback: null, model: null };
+    this.active_popup_view_context = { callback: null, model: null };
 
+    const self = this;
     function PatchedView(options, ...args) {
       OrigView.call(this, options, ...args);
       const { isPopup, popupCloseCallback: cb } = this.options;
       if (isPopup && typeof cb === 'function') {
-        active_popup_view_context.callback = cb;
-        active_popup_view_context.model = this.model;
+        self.active_popup_view_context.callback = cb;
+        self.active_popup_view_context.model = this.model;
       }
     }
 
@@ -30,15 +31,22 @@ class CorezoidDeployShortcut {
 
     window.Backbone.View = PatchedView;
 
-    window.getActivePopupViewContext = () => active_popup_view_context;
+    console.log('Corezoid Deploy Shortcut: Backbone.View patched for popup context tracking');
+  }
 
-    window.synchronize_editors_src = () => {
-      const { callback, model } = active_popup_view_context;
-      if (typeof callback === 'function' && model?.attributes)
-        callback(model.attributes.src);
-    };
+  synchronize_editors_src() {
+    if (!this.active_popup_view_context) {
+      console.log('Corezoid Deploy Shortcut: No popup context available for synchronization');
+      return;
+    }
 
-    console.log('Corezoid Deploy Shortcut: Backbone.View patched and synchronize_editors_src function added');
+    const { callback, model } = this.active_popup_view_context;
+    if (typeof callback === 'function' && model?.attributes) {
+      callback(model.attributes.src);
+      console.log('Corezoid Deploy Shortcut: Editors synchronized successfully');
+    } else {
+      console.log('Corezoid Deploy Shortcut: No valid callback or model for synchronization');
+    }
   }
 
   async init() {
@@ -103,10 +111,7 @@ class CorezoidDeployShortcut {
     const deploy_button = this.find_deploy_button();
     
     if (deploy_button) {
-      if (typeof window.synchronize_editors_src === 'function') {
-        window.synchronize_editors_src();
-        console.log('Corezoid Deploy Shortcut: Editors synchronized before deployment');
-      }
+      this.synchronize_editors_src();
       
       deploy_button.click();
       console.log('Corezoid Deploy Shortcut: Deploy action triggered via keyboard shortcut');
