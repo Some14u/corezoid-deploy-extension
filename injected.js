@@ -16,12 +16,12 @@ function initBackbonePatch() {
       if (isPopup && typeof cb === 'function') {
         active_popup_view_context.callback = cb;
         active_popup_view_context.model = this.model;
+        this.on('destroy', () => {
+          active_popup_view_context.callback = null;
+          active_popup_view_context.model = null;
+          console.log('Corezoid Deploy Shortcut: Active popup context cleared');
+        });
       }
-      this.on('destroy', () => {
-        active_popup_view_context.callback = null;
-        active_popup_view_context.model = null;
-        console.log('Corezoid Deploy Shortcut: Active popup context cleared');
-      });
     }
 
     PatchedView.prototype = Object.create(OrigView.prototype);
@@ -42,13 +42,14 @@ function initBackbonePatch() {
   const observer = new MutationObserver(() => {
     if (tryInitialize()) {
       observer.disconnect();
+      clearTimeout(timeoutId);
       console.log('Corezoid Deploy Shortcut: Backbone patched successfully via retry mechanism');
     }
   });
 
   observer.observe(document, { childList: true, subtree: true });
 
-  setTimeout(() => {
+  const timeoutId = setTimeout(() => {
     observer.disconnect();
     console.log('Corezoid Deploy Shortcut: Backbone patch initialization timed out after 10 seconds');
   }, 10000);
