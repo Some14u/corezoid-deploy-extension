@@ -18,17 +18,8 @@ function initBackbonePatch() {
         active_popup_view_context.model = this.model;
       }
       this.on('destroy', () => {
-        console.log('Corezoid Deploy Shortcut: View destroy event fired', {
-          isPopup: this.options?.isPopup,
-          hasCallback: !!this.options?.popupCloseCallback,
-          currentContextModel: active_popup_view_context.model,
-          thisModel: this.model,
-          contextWillBeCleared: active_popup_view_context.model === this.model
-        });
-        
         active_popup_view_context.callback = null;
         active_popup_view_context.model = null;
-        
         console.log('Corezoid Deploy Shortcut: Active popup context cleared');
       });
     }
