@@ -1,0 +1,38 @@
+name: Chrome – Zip & Publish
+
+on:
+  push:
+    branches: [release]
+  workflow_dispatch:
+
+jobs:
+  chrome_publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: "18" }
+
+      - name: Zip extension
+        run: |
+          mkdir -p dist
+          zip -r dist/extension.zip . -x '.git/*' '.github/*' 'dist/*'
+
+      - name: Upload & publish
+        run: |
+          npx --yes chrome-webstore-upload-cli upload \
+            --source dist/extension.zip \
+            --extension-id "$CHROME_EXTENSION_ID" \
+            --client-id "$CHROME_CLIENT_ID" \
+            --client-secret "$CHROME_CLIENT_SECRET" \
+            --refresh-token "$CHROME_REFRESH_TOKEN"
+          npx --yes chrome-webstore-upload-cli publish \
+            --extension-id "$CHROME_EXTENSION_ID" \
+            --client-id "$CHROME_CLIENT_ID" \
+            --client-secret "$CHROME_CLIENT_SECRET" \
+            --refresh-token "$CHROME_REFRESH_TOKEN"
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
