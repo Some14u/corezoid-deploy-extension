@@ -21,6 +21,9 @@ jobs:
           source: "./"
           artifacts: "build"
 
+      - name: Ensure signed directory exists
+        run: mkdir -p signed
+
       - name: Sign extension
         id: web-ext-sign
         uses: kewisch/action-web-ext@v1
