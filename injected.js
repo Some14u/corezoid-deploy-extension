@@ -39,10 +39,9 @@ function initBackbonePatch() {
 
   console.log('Corezoid Deploy Shortcut: Backbone not ready, setting up retry mechanism');
 
-  let observer;
   let timeout_id;
 
-  observer = new MutationObserver(() => {
+  const observer = new MutationObserver(() => {
     if (tryInitialize()) {
       observer.disconnect();
       clearTimeout(timeout_id);
