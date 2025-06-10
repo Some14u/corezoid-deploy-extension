@@ -39,18 +39,21 @@ function initBackbonePatch() {
 
   console.log('Corezoid Deploy Shortcut: Backbone not ready, setting up retry mechanism');
 
-  const timeout_id = setTimeout(() => {
-    observer.disconnect();
-    console.log('Corezoid Deploy Shortcut: Backbone patch initialization timed out after 10 seconds');
-  }, 10000);
+  let observer;
+  let timeout_id;
 
-  const observer = new MutationObserver(() => {
+  observer = new MutationObserver(() => {
     if (tryInitialize()) {
       observer.disconnect();
       clearTimeout(timeout_id);
       console.log('Corezoid Deploy Shortcut: Backbone patched successfully via retry mechanism');
     }
   });
+
+  timeout_id = setTimeout(() => {
+    observer.disconnect();
+    console.log('Corezoid Deploy Shortcut: Backbone patch initialization timed out after 10 seconds');
+  }, 10000);
 
   observer.observe(document, { childList: true, subtree: true });
 }
