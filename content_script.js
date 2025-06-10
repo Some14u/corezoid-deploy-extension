@@ -50,7 +50,7 @@ class CorezoidDeployShortcut {
 
   inject_modal_styles() {
     const style_id = 'corezoid-deploy-shortcut-styles';
-    
+
     if (document.getElementById(style_id)) {
       return;
     }
@@ -62,7 +62,7 @@ class CorezoidDeployShortcut {
         z-index: 999998;
       }
     `;
-    
+
     document.head.appendChild(style_element);
     console.log('Corezoid Deploy Shortcut: Modal z-index styles injected');
   }
@@ -70,7 +70,7 @@ class CorezoidDeployShortcut {
   async check_valid_page() {
     const current_url = window.location.href;
     const configured_domains = await this.get_configured_domains();
-    
+
     return configured_domains.some(domain => {
       const pattern = new RegExp(`^${domain.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/[^/]+/process/\\d+`);
       return pattern.test(current_url);
@@ -98,7 +98,7 @@ class CorezoidDeployShortcut {
 
   async trigger_deploy() {
     const deploy_button = this.find_deploy_button();
-    
+
     if (!deploy_button) {
       console.log('Corezoid Deploy Shortcut: Deploy button not available - process cannot be deployed at this time');
       return;
@@ -111,17 +111,17 @@ class CorezoidDeployShortcut {
 
   find_deploy_button() {
     const deploy_button = document.querySelector(this.deploy_button_selector);
-    
+
     if (!deploy_button) {
       return null;
     }
 
-    const has_required_classes = this.deploy_button_classes.every(className => 
+    const has_required_classes = this.deploy_button_classes.every(className =>
       deploy_button.classList.contains(className)
     );
 
-    const is_visible = deploy_button.offsetParent !== null && 
-                      getComputedStyle(deploy_button).display !== 'none';
+    const is_visible = deploy_button.offsetParent !== null &&
+      getComputedStyle(deploy_button).display !== 'none';
 
     if (!has_required_classes || !is_visible) {
       return null;
@@ -163,7 +163,7 @@ class CorezoidDeployShortcut {
 
   create_toast_notification(message, type = 'success') {
     const toast_id = 'corezoid-deploy-toast';
-    
+
     const existing_toast = document.getElementById(toast_id);
     if (existing_toast) {
       existing_toast.remove();
@@ -171,15 +171,15 @@ class CorezoidDeployShortcut {
 
     const toast = document.createElement('div');
     toast.id = toast_id;
-    
+
     const toast_icon = document.createElement('div');
     toast_icon.className = 'toast-icon';
     toast_icon.textContent = '✓';
-    
+
     const toast_text = document.createElement('div');
     toast_text.className = 'toast-text';
     toast_text.textContent = 'Deployed';
-    
+
     toast.appendChild(toast_icon);
     toast.appendChild(toast_text);
 
@@ -187,7 +187,7 @@ class CorezoidDeployShortcut {
       position: fixed;
       top: 10px;
       right: 10px;
-      background: #28a745;
+      background: #57b557;
       color: white;
       padding: 6px 10px;
       border-radius: 4px;
