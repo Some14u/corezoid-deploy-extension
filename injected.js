@@ -9,7 +9,7 @@ function initBackbonePatch() {
     }
 
     const { View: OrigView } = window.Backbone;
-    
+
     function PatchedView(options, ...args) {
       OrigView.call(this, options, ...args);
       const { isPopup, popupCloseCallback: cb } = this.options;
@@ -17,6 +17,20 @@ function initBackbonePatch() {
         active_popup_view_context.callback = cb;
         active_popup_view_context.model = this.model;
       }
+      this.on('destroy', () => {
+        console.log('Corezoid Deploy Shortcut: View destroy event fired', {
+          isPopup: this.options?.isPopup,
+          hasCallback: !!this.options?.popupCloseCallback,
+          currentContextModel: active_popup_view_context.model,
+          thisModel: this.model,
+          contextWillBeCleared: active_popup_view_context.model === this.model
+        });
+        
+        active_popup_view_context.callback = null;
+        active_popup_view_context.model = null;
+        
+        console.log('Corezoid Deploy Shortcut: Active popup context cleared');
+      });
     }
 
     PatchedView.prototype = Object.create(OrigView.prototype);
@@ -33,7 +47,7 @@ function initBackbonePatch() {
   }
 
   console.log('Corezoid Deploy Shortcut: Backbone not ready, setting up retry mechanism');
-  
+
   const observer = new MutationObserver(() => {
     if (tryInitialize()) {
       observer.disconnect();
